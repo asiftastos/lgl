@@ -13,7 +13,7 @@ solution "LearningGL"
 	}
 	location ("build")
 
-	project "Common"
+	project "lgl"
 		targetname "lgl"
 		language "C"
 		kind "SharedLib"
@@ -26,7 +26,7 @@ solution "LearningGL"
 
 		includedirs {
 			"libs/glad", "libs/glfw", "libs/cglm/include/cglm",
-			"libs/stb", "libs/nanovg", "src"
+			"libs/stb", "src"
 		}
 
 		files {
@@ -34,11 +34,15 @@ solution "LearningGL"
 			"libs/glfw/init.c", "libs/glfw/input.c", "libs/glfw/monitor.c",
 			"libs/glfw/vulkan.c", "libs/glfw/window.c", "libs/stb/stb_ds.c",
 			"src/lgl/demo.c", "src/lgl/shader.c", "libs/stb/stb_rect_pack.c",
-			"libs/nanovg/nanovg.c"
+			"libs/stb/stb_truetype.c"
 		}
 
 		buildoptions {
-			"-m64", "-Wno-unused-parameter", "-Wno-unused-function"
+			"-m64", 
+			"-Wno-unused-parameter", 
+			"-Wno-unused-function",
+			"-Wno-missing-field-initializers",
+			"-Wno-sign-compare"
 		}
 
 		configuration "windows"
@@ -51,6 +55,55 @@ solution "LearningGL"
 
 			links { "gdi32" }
 		
+		configuration "Debug"
+			targetsuffix "d"
+			defines     { "_DEBUG" }
+			flags       { "Symbols" }
+
+		configuration "Release"
+			defines     { "NDEBUG" }
+			flags       { "OptimizeSize" }
+		
+		configuration {}
+
+
+	project "lglui"
+		targetname "lglui"
+		language "C"
+		kind "SharedLib"
+		flags {
+			"ExtraWarnings",
+			"No64BitChecks",
+			"StaticRuntime"
+		}
+		implibdir "build"
+
+		includedirs {
+			"src/lglui",
+			"libs/glad",
+			"libs/glfw",
+			"libs/stb", 
+			"libs/nanovg"
+		}
+
+		files {
+			"src/lglui/demoui.c",
+			"libs/nanovg/nanovg.c"
+		}
+
+		buildoptions {
+			"-m64",
+			"-Wno-unused-parameter",
+			"-Wno-unused-function",
+			"-Wno-missing-field-initializers",
+			"-Wno-sign-compare"
+		}
+
+		links {"lgl"}
+
+		configuration "windows"
+			defines { "_WIN32" }
+
 		configuration "Debug"
 			targetsuffix "d"
 			defines     { "_DEBUG" }

@@ -6,7 +6,6 @@
 #include "glad.h"
 #include "GLFW/glfw3.h"
 #include "cglm.h"
-#include "nanovg.h"
 #include "assets.h"
 
 typedef enum RenderPass { PASS_3D, PASS_2D, PASS_UI, PASS_FLUSH }RenderPass;
@@ -39,9 +38,8 @@ typedef struct Demo
     int renderPass; //[PASS_3D or PASS_2D] used in render func, -1 for other funcs
     Button keys[GLFW_KEY_LAST];
     Mouse mouse;
-    NVGcontext* vg;
-    int vgFontNormal;
     double frameDelta;
+    double cpuTime;
 }Demo;
 
 
