@@ -1,4 +1,5 @@
 #include "lgl/demo.h"
+#include "lglui/demoui.h"
 
 typedef void (*PanelAction)();
 
@@ -18,6 +19,7 @@ typedef struct Panel
 }Panel;
 
 static Demo* d = NULL;
+static Demoui* dui = NULL;
 static Shader* simple = NULL;
 static GLuint vao;
 static int colorLoc;
@@ -60,11 +62,15 @@ static void panelCreate()
         xmax, ymin, -1.0f
     };
 
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
     glGenBuffers(1, &panel.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, panel.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 18, vertbuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
     glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 static bool panelHover()
@@ -87,10 +93,11 @@ void init()
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     simple = shaderCreate("assets/shaders/simple2d.vert", "assets/shaders/simple2d.frag");
     shaderUse(simple);
-
     colorLoc = glGetUniformLocation(simple->program, "color");
     modelLoc = glGetUniformLocation(simple->program, "model");
     projLoc = glGetUniformLocation(simple->program, "proj");
+    glUseProgram(0);
+
     panelCreate();
     panel.alphaLoc = glGetUniformLocation(simple->program, "alpha");
     panel.clicked = OnPanelClicked;
@@ -101,11 +108,14 @@ void init()
     //glm_translate(model, (vec3){panel.position[0], panel.position[1], 0.0f});
     glm_mat4_ins3(panel.model, model);
     glm_mat4_identity(proj);
-    glm_ortho(0.0f, d->fbSize[0],  d->fbSize[1], 0.0f, 0.1f, 100.0f, proj);    
+    glm_ortho(0.0f, d->fbSize[0],  d->fbSize[1], 0.0f, 0.1f, 100.0f, proj);
+
+    dui = demouiInit();
 }
 
 void terminate()
 {
+    demouiTerminate();
     glDeleteBuffers(1, &panel.vbo);
     glDeleteVertexArrays(1, &vao);
     shaderDestroy(simple);
@@ -117,6 +127,12 @@ void update()
 {
     if(d->keys[GLFW_KEY_ESCAPE].pressed)
         glfwSetWindowShouldClose(d->window, GLFW_TRUE);
+    
+    if(d->keys[GLFW_KEY_F3].pressed)
+        demouiToggleShowGraphs();
+    
+    if(d->keys[GLFW_KEY_F4].pressed)
+        demouiToggleGraph();
     
     if(panel.clickedDelay > 0.0f){
         panel.clickedDelay -= d->frameDelta;
@@ -144,18 +160,35 @@ void update()
 
 void render()
 {
-    glViewport(0, 0, (int)d->fbSize[0], (int)d->fbSize[1]);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    shaderUse(simple);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model[0]);
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj[0]);
-    glUniform1f(panel.alphaLoc, panel.alphas[panel.alpha]);
-    glUniform3fv(colorLoc, 1, panel.colors[panel.color]);
-    glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-    glDisable(GL_BLEND);
+    if(d->renderPass == PASS_3D && dui->showGraphs)
+    {
+        demouiStartGPUTimer();
+    }else if(d->renderPass == PASS_2D)
+    {
+        //glViewport(0, 0, (int)d->fbSize[0], (int)d->fbSize[1]);
+        //glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        shaderUse(simple);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model[0]);
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj[0]);
+        glUniform1f(panel.alphaLoc, panel.alphas[panel.alpha]);
+        glUniform3fv(colorLoc, 1, panel.colors[panel.color]);
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, panel.vbo);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDisable(GL_BLEND);
+        glUseProgram(0);
+    }else if(d->renderPass == PASS_UI)
+    {
+        demouiBeginRender(d->winSize[0], d->winSize[1], d->winSize[0] / d->fbSize[0]);
+    }else if(d->renderPass == PASS_FLUSH)
+    {
+        demouiEndRender(d->winSize[0] - 200 - 5, 5);
+        demouiUpdateGraphs(d->cpuTime, d->frameDelta);
+    }
 }
 
 int main(void)

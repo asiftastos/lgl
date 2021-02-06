@@ -9,17 +9,25 @@ project "demo2d"
 		"StaticRuntime"
 	}
 	includedirs {
-		"../libs/glad", "../libs/glfw", "../libs/cglm/include/cglm", 
-		"../libs/stb", "../libs/nanovg", "../src"
+		"../libs/glad",
+		"../libs/glfw",
+		"../libs/cglm/include/cglm", 
+		"../libs/stb",
+		"../libs/nanovg",
+		"../src"
 	}
 	files {
 		"demo2d/main.c"
 	}
 	buildoptions {
 		"-m64",
+		"-Wno-unused-parameter",
+		"-Wno-unused-function",
+		"-Wno-missing-field-initializers",
+		"-Wno-sign-compare"
     }
     libdirs { "../build" }
-	links {"Common"}
+	links {"lgl", "lglui"}
 	configuration "windows"
 		defines { "_WIN32", "_GLFW_WIN32"}
 		links { "gdi32" }
