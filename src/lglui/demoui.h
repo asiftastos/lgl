@@ -10,7 +10,7 @@ typedef struct Demoui
     bool showGraphs;
 }Demoui;
 
-void demouiInit();
+Demoui* demouiInit();
 void demouiTerminate();
 void demouiToggleShowGraphs();
 void demouiToggleGraph();

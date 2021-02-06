@@ -210,7 +210,7 @@ static int stopGPUTimer(GPUtimer* timer, float* times, int maxTimes)
 }
 
 
-void demouiInit()
+Demoui* demouiInit()
 {
     demoui = (Demoui*)calloc(1, sizeof(Demoui));
     assert(demoui);
@@ -224,6 +224,8 @@ void demouiInit()
     //GPU Timer
     gpuTimer = (GPUtimer*)malloc(sizeof(GPUtimer));
     initGPUTimer(gpuTimer);
+
+	return demoui;
 }
 
 void demouiTerminate()
