@@ -7,7 +7,7 @@ out vec4 FragColor;
 
 uniform sampler2D mytexture;
 
-const float smoothing = 1.0/16.0;
+const float smoothing = 1.0f/16.0f;
 
 void main()
 {

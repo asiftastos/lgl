@@ -54,16 +54,20 @@ project "demotext"
 	}
 	includedirs {
 		"../libs/glad", "../libs/glfw", "../libs/cglm/include/cglm", 
-		"../libs/stb", "../libs/nanovg", "../src"
+		"../libs/stb", "../src"
 	}
 	files {
 		"demotext/main.c"
 	}
 	buildoptions {
 		"-m64",
+		"-Wno-unused-parameter",
+		"-Wno-unused-function",
+		"-Wno-missing-field-initializers",
+		"-Wno-sign-compare"
     }
     libdirs { "../build" }
-	links {"Common"}
+	links {"lgl"}
 	configuration "windows"
 		defines { "_WIN32", "_GLFW_WIN32"}
 		links { "gdi32" }
@@ -132,10 +136,14 @@ project "demosandsim"
 		"demosandsim/main.c"
 	}
 	buildoptions {
-		"-m64", "-Wno-unused-function", "-Wno-unused-parameter"
+		"-m64",
+		"-Wno-unused-parameter",
+		"-Wno-unused-function",
+		"-Wno-missing-field-initializers",
+		"-Wno-sign-compare"
     }
 	libdirs { "../build" }
-	links {"Common"}
+	links {"lgl", "lglui"}
 	configuration "windows"
 		defines { "_WIN32", "_GLFW_WIN32"}
 		links { "gdi32" }

@@ -143,12 +143,13 @@ static void loadSDF()
 
     stbtt_InitFont(&font, buffer, 0);
     scale = stbtt_ScaleForPixelHeight(&font, sdf_size);
+    printf("Font scale: %f\n", scale);
 
     texwidth = 0;
     for (int ch=32; ch < 127; ++ch) {
       fontchar fc;
       int xoff,yoff,w,h, advance;
-      fc.data = stbtt_GetCodepointSDF(&font, scale, ch, 3, 128.0f, 64.0f, &w, &h, &xoff, &yoff);
+      fc.data = stbtt_GetCodepointSDF(&font, scale, ch, 3, 128.0f, 48.0f, &w, &h, &xoff, &yoff);
       fc.xoff = xoff;
       fc.yoff = yoff;
       fc.w = w;
@@ -202,9 +203,9 @@ static void initSDF()
 {
     VertexTexture* vertbuffer = NULL;
     uint16_t* indices = NULL;
-    float xpos = 10.0f;
-    float ypos = 80.0f;
-    
+    float xpos = 5.0f;
+    float ypos = 60.0f;
+
     int l = strlen(sdfText.text);
     for (int i = 0; i < l; i++)
     {
@@ -212,12 +213,13 @@ static void initSDF()
         AtlasRect ar = charInfoRects[c];
         fontchar fc = fdata[c];
 
-        //printf("Atlasrect [%c]: %f, %f, %f, %f, [%d,%d]\n", c, ar.x0, ar.y0, ar.x1, ar.y1, fc.w, fc.h);
-
+        //printf("Atlasrect [%c]: %d, %d, %d, [%d,%d]\n", c, fc.xoff, fc.yoff, yoff, fc.w, fc.h);
+        
+        int yoff = fc.h + fc.yoff;
         float xmin = xpos;
         float xmax = xpos + (float)fc.w;
-        float ymin = ypos;
-        float ymax = ypos + (float)sdf_size;
+        float ymin = ypos - (float)(fc.h - yoff); //reversed, from top-left to bottom-left
+        float ymax = ypos;
         VertexTexture vt1 = {{xmin, ymin, -1.0f}, {ar.x0, ar.y0}};
         arrput(vertbuffer, vt1);
         VertexTexture vt2 = {{xmin, ymax, -1.0f}, {ar.x0, ar.y1}};
@@ -235,7 +237,7 @@ static void initSDF()
         arrput(indices, lastIndex + 3);
         arrput(indices, lastIndex + 2);
 
-        xpos += fc.w + 1;
+        xpos += fc.advance;
     }
     
     
@@ -279,34 +281,34 @@ void demoInit()
     printf("Demotext initialized\n");
     glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 
-    // BROKEN because of FONTSTASH from NANOVG
-    //unsigned char* buffer = NULL;
-    //buffer = (unsigned char*)calloc(24<<20, sizeof(unsigned char));
-    //fread(buffer, 1, 1000000, fopen("assets/fonts/Roboto-Regular.ttf", "rb"));
-//
-    //stbtt_pack_context packContext;
-    //uint8_t* atlasdata = (uint8_t*)calloc(1024 * 1024, sizeof(uint8_t));
-    //if(!stbtt_PackBegin(&packContext, atlasdata, 1024, 1024, 0, 1, (FONScontext*)nvgGetFontstash(d->vg)))
-    //    printf("Failed to initialize font\n");
-    //
-    //charinfo = (stbtt_packedchar*)calloc(charCount, sizeof(stbtt_packedchar));
-    //stbtt_PackSetOversampling(&packContext, 2, 2); //better quality
-    //if(!stbtt_PackFontRange(&packContext, buffer, 0, 40, firstChar, charCount, charinfo))
-    //    printf("Failed to pack ranges to atlas\n");
-    //
-    //stbtt_PackEnd(&packContext);
-    //free(buffer);
-//
-    //glGenTextures(1, &fontTextureAtlas);
-    //glBindTexture(GL_TEXTURE_2D, fontTextureAtlas);
-    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 1024, 1024, 0, GL_ALPHA, GL_UNSIGNED_BYTE, atlasdata);
-    //glGenerateMipmap(GL_TEXTURE_2D);
-//
-    //free((void*)atlasdata);
+    
+    unsigned char* buffer = NULL;
+    buffer = (unsigned char*)calloc(24<<20, sizeof(unsigned char));
+    fread(buffer, 1, 1000000, fopen("assets/fonts/Roboto-Regular.ttf", "rb"));
 
-    //debugText.text = "Kostas";
-    //updateText();
+    stbtt_pack_context packContext;
+    uint8_t* atlasdata = (uint8_t*)calloc(1024 * 1024, sizeof(uint8_t));
+    if(!stbtt_PackBegin(&packContext, atlasdata, 1024, 1024, 0, 1, NULL))
+        printf("Failed to initialize font\n");
+    
+    charinfo = (stbtt_packedchar*)calloc(charCount, sizeof(stbtt_packedchar));
+    stbtt_PackSetOversampling(&packContext, 2, 2); //better quality
+    if(!stbtt_PackFontRange(&packContext, buffer, 0, 40, firstChar, charCount, charinfo))
+        printf("Failed to pack ranges to atlas\n");
+    
+    stbtt_PackEnd(&packContext);
+    free(buffer);
+
+    glGenTextures(1, &fontTextureAtlas);
+    glBindTexture(GL_TEXTURE_2D, fontTextureAtlas);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 1024, 1024, 0, GL_ALPHA, GL_UNSIGNED_BYTE, atlasdata);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    free((void*)atlasdata);
+
+    debugText.text = "Kostas";
+    updateText();
 
     textsh = shaderCreate("assets/shaders/demotext.vert", "assets/shaders/demotext.frag");
     shaderUse(textsh);
@@ -352,7 +354,7 @@ void demoRender()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    drawText();
+    //drawText();
 
     drawSDF();
 }

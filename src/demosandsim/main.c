@@ -1,4 +1,5 @@
 #include "lgl/demo.h"
+#include "lglui/demoui.h"
 #include <time.h>
 
 #define SLOT_SIZE 2
@@ -15,6 +16,7 @@ const char* elementNames[] = {
 };
 
 static Demo* d = NULL;
+static Demoui* dui = NULL;
 
 typedef enum ElementType
 {
@@ -233,7 +235,7 @@ void updateWater(int x, int y)
     grid.elementsGrid[thisIndex].velocity -= gravity * d->frameDelta;
     if(grid.elementsGrid[thisIndex].velocity <= 0.0f)
     {
-        createElemFuncs[SAND](&grid.elementsGrid[newPosIndex]);
+        createElemFuncs[WATER](&grid.elementsGrid[newPosIndex]);
         createElemFuncs[AIR](&grid.elementsGrid[thisIndex]);
         grid.elementsGrid[thisIndex].velocity = 1.0f;
     }
@@ -400,14 +402,16 @@ static void renderGrid()
 
 static void drawText(float x, float y, const char* txt)
 {
-    nvgFontSize(d->vg, 16.0f);
-	nvgTextAlign(d->vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
-	nvgFillColor(d->vg, nvgRGBA(255,255,255,200));
-	nvgText(d->vg, x, y, txt, NULL);
+    nvgFontSize(dui->vg, 16.0f);
+	nvgTextAlign(dui->vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
+	nvgFillColor(dui->vg, nvgRGBA(255,255,255,200));
+	nvgText(dui->vg, x, y, txt, NULL);
 }
 
 static void renderUI()
 {
+    demouiBeginRender(d->winSize[0], d->winSize[1], d->winSize[0] / d->fbSize[0]);
+
     char debugInfo[64];
     sprintf(debugInfo, "Verts: %d, World verts: %d", vertCount, worldVertCount);
     drawText(0.0f, 0.0f, debugInfo);
@@ -435,6 +439,8 @@ void init()
     //glPointSize(2.0f);
     vertexBuffer = (float*)malloc(sizeof(float)*numOfSlots*7*6);
     memset(vertexBuffer, 0, sizeof(float)*numOfSlots*7*6);
+
+    dui = demouiInit();
 }
 
 void terminate()
@@ -450,6 +456,8 @@ void terminate()
     glDeleteVertexArrays(1, &worldVao);
     shaderDestroy(sh);
 
+    demouiTerminate();
+
     printf("Demo sand simulation terminated\n");
 }
 
@@ -457,6 +465,12 @@ void update()
 {
      if(d->keys[GLFW_KEY_ESCAPE].pressed)
         glfwSetWindowShouldClose(d->window, GLFW_TRUE);
+    
+    if(d->keys[GLFW_KEY_F3].pressed)
+        demouiToggleShowGraphs();
+    
+    if(d->keys[GLFW_KEY_F4].pressed)
+        demouiToggleGraph();
     
     if(d->mouse.buttons[GLFW_MOUSE_BUTTON_LEFT].down)
     {
@@ -494,15 +508,24 @@ void render()
     switch (d->renderPass)
     {
     case PASS_3D:
+        demouiStartGPUTimer();
         break;
     case PASS_2D:
         drawGrid();
         break;
     case PASS_UI:
-        renderUI();
+        {
+            if(dui->showGraphs)
+                renderUI();
+        }
         break;
     case PASS_FLUSH:
-        renderGrid();
+        {
+            renderGrid();
+
+            demouiEndRender(d->winSize[0] - 200 - 5, 5);
+            demouiUpdateGraphs(d->cpuTime, d->frameDelta);
+        }
         break;
     default:
         break;

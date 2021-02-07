@@ -160,7 +160,7 @@ void update()
 
 void render()
 {
-    if(d->renderPass == PASS_3D && dui->showGraphs)
+    if(d->renderPass == PASS_3D)
     {
         demouiStartGPUTimer();
     }else if(d->renderPass == PASS_2D)
@@ -181,7 +181,7 @@ void render()
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDisable(GL_BLEND);
         glUseProgram(0);
-    }else if(d->renderPass == PASS_UI)
+    }else if(d->renderPass == PASS_UI && dui->showGraphs)
     {
         demouiBeginRender(d->winSize[0], d->winSize[1], d->winSize[0] / d->fbSize[0]);
     }else if(d->renderPass == PASS_FLUSH)
