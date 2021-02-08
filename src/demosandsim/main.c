@@ -515,8 +515,7 @@ void render()
         break;
     case PASS_UI:
         {
-            if(dui->showGraphs)
-                renderUI();
+            renderUI();
         }
         break;
     case PASS_FLUSH:
