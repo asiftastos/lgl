@@ -2,12 +2,13 @@
 #include "lglui/demoui.h"
 #include <time.h>
 
-#define SLOT_SIZE 2
+#define SLOT_SIZE 4
 #define GRID_SIZE 512
 
 const int slotsWidth = GRID_SIZE / SLOT_SIZE;
 const int numOfSlots = (GRID_SIZE*GRID_SIZE) / SLOT_SIZE;
-const float gravity = 100.0f;
+const float gravity = 1.0f;
+
 const char* elementNames[] = {
     "Air",
     "Sand",
@@ -34,6 +35,7 @@ typedef struct Element
     float lifetime;
     float velocity;
     vec4 color;
+    int newPos;
 }Element;
 
 typedef void (*CreateElemFN)(Element* e);
@@ -68,6 +70,7 @@ Shader* sh;
 CreateElemFN createElemFuncs[LAST_ELEM];
 UpdateElemFN updateElemFuncs[LAST_ELEM];
 int selectedElement = SAND;
+int cursorRadius = 1;
 
 int Random(int min, int max)
 {
@@ -83,6 +86,7 @@ int Index(int x, int y)
 
 void Air(Element* e)
 {
+    e->newPos = -1;
     e->id = AIR;
     e->velocity = 0.0f;
     e->lifetime = 0.0f;
@@ -91,14 +95,16 @@ void Air(Element* e)
 
 void Sand(Element* e)
 {
+    e->newPos = -1;
     e->id = SAND;
     e->lifetime = 0.0f;
-    e->velocity = 2.0f;
+    e->velocity = 1.0f;
     glm_vec4((vec3){0.9f,0.76f,0.16f}, 1.0f, e->color);
 }
 
 void Stone(Element* e)
 {
+    e->newPos = -1;
     e->id = STONE;
     e->lifetime = 0.0f;
     e->velocity = 0.0f;
@@ -107,9 +113,10 @@ void Stone(Element* e)
 
 void Water(Element* e)
 {
+    e->newPos = -1;
     e->id = WATER;
     e->lifetime = 0.0f;
-    e->velocity = 1.0f;
+    e->velocity = 1.5f;
     glm_vec4((vec3){0.05f,0.2f,0.9f}, 1.0f, e->color);
 }
 
@@ -118,65 +125,36 @@ void updateSand(int x, int y)
     if(y+1 == slotsWidth)
         return;
     
-    // find out the cell we can go
-    int xdest = x;
-    int ydest = y;
-    int newPosIndex = 0;
-
-    //3places can go
-    int down = Index(x, y+1);
-    int downr = Index(x+1, y+1);
-    int downl = Index(x-1, y+1);
-
-    int r = Random(0, 10);
-
-    if(grid.elementsGrid[down].id == AIR)
+    int thisIndex = Index(x, y);
+    Element* thisElem = &grid.elementsGrid[thisIndex];
+    float v = thisElem->velocity + gravity * d->frameDelta;
+    
+    if(thisElem->newPos == -1)
     {
-        ydest++;
-        newPosIndex = down;
-    }else if(r > 5)
-    {
-        if(grid.elementsGrid[downr].id == AIR)
+        int down = Index(x, y + v);
+        int vx = Random(0, 1) == 0 ? -1 : 1; //randomly select left/right
+
+        if(grid.elementsGrid[down].id == AIR)
         {
-            xdest++;
-            ydest++;
-            newPosIndex = downr;
-        }else if(grid.elementsGrid[downl].id == AIR)
+            thisElem->newPos = down;
+        }else if(grid.elementsGrid[Index( x + vx, y + v)].id == AIR)
         {
-            xdest--;
-            ydest++;
-            newPosIndex = downl;
+            thisElem->newPos = Index(x + vx, y + v);
+        }else if(grid.elementsGrid[Index( x - vx, y + v)].id == AIR)
+        {
+            thisElem->newPos = Index(x - vx, y + v);
         }else
         {
-            return;
-        }
-    }else
-    {
-        if(grid.elementsGrid[downl].id == AIR)
-        {
-            xdest--;
-            ydest++;
-            newPosIndex = downr;
-        }else if(grid.elementsGrid[downr].id == AIR)
-        {
-            xdest++;
-            ydest++;
-            newPosIndex = downl;
-        }else
-        {
-            return;
+            return; //it can't go anywhere
         }
     }
-    
-    
-    //move
-    int thisIndex = Index(x, y);
-    grid.elementsGrid[thisIndex].velocity -= gravity * d->frameDelta;
-    if(grid.elementsGrid[thisIndex].velocity <= 0.0f)
+
+    if(grid.elementsGrid[thisElem->newPos].id == AIR)
     {
-        createElemFuncs[SAND](&grid.elementsGrid[newPosIndex]);
+        thisElem->velocity = 1.0f;
+        createElemFuncs[SAND](&grid.elementsGrid[thisElem->newPos]);
         createElemFuncs[AIR](&grid.elementsGrid[thisIndex]);
-        grid.elementsGrid[thisIndex].velocity = 2.0f;
+        //thisElem->newPos = -1;
     }
 }
 
@@ -189,55 +167,44 @@ void updateWater(int x, int y)
     if(y+1 == slotsWidth)
         return;
     
-    // find out the cell we can go
-    int xdest = x;
-    int ydest = y;
-    int newPosIndex = 0;
+    int thisIndex = Index(x, y);
+    Element* thisElem = &grid.elementsGrid[thisIndex];
+    float v = thisElem->velocity + gravity * d->frameDelta;
 
-    //5places can go
-    int down = Index(x, y+1);
-    int downr = Index(x+1, y+1);
-    int downl = Index(x-1, y+1);
-    int right = Index(x+1, y);
-    int left = Index(x-1,y);
+    if(thisElem->newPos == -1)
+    {
+        //5places can go
+        int down = Index(x, y+1);
+        int vx = Random(0,1) == 0 ? -1 : 1;
 
-    //int r = Random(0, 10);
-
-    if(grid.elementsGrid[down].id == AIR)
-    {
-        ydest++;
-        newPosIndex = down;
-    }else if(grid.elementsGrid[downr].id == AIR)
-    {
-        xdest++;
-        ydest++;
-        newPosIndex = downr;
-    }else if(grid.elementsGrid[downl].id == AIR)
-    {
-        xdest--;
-        ydest++;
-        newPosIndex = downl;
-    }else if(grid.elementsGrid[right].id == AIR)
-    {
-        xdest++;
-        newPosIndex = right;
-    }else if(grid.elementsGrid[left].id == AIR)
-    {
-        xdest--;
-        newPosIndex = left;
-    }else
-    {
-        return;
+        if(grid.elementsGrid[down].id == AIR)
+        {
+            thisElem->newPos = down;
+        }else if(grid.elementsGrid[Index(x + vx, y + v)].id == AIR)
+        {
+            thisElem->newPos = Index(x + vx, y + v);
+        }else if(grid.elementsGrid[Index(x - vx, y + v)].id == AIR)
+        {
+            thisElem->newPos = Index(x - vx, y + v);
+        }else if(grid.elementsGrid[Index(x + vx, y)].id == AIR)
+        {
+            thisElem->newPos = Index(x + vx, y);
+        }else if(grid.elementsGrid[Index(x - vx, y)].id == AIR)
+        {
+            thisElem->newPos = Index(x - vx, y);
+        }else
+        {
+            return;
+        }
     }
     
-    //move
-    int thisIndex = Index(x, y);
-    grid.elementsGrid[thisIndex].velocity -= gravity * d->frameDelta;
-    if(grid.elementsGrid[thisIndex].velocity <= 0.0f)
+    
+    if(grid.elementsGrid[thisElem->newPos].id == AIR)
     {
-        createElemFuncs[WATER](&grid.elementsGrid[newPosIndex]);
+        thisElem->velocity = 1.5f;
+        createElemFuncs[WATER](&grid.elementsGrid[thisElem->newPos]);
         createElemFuncs[AIR](&grid.elementsGrid[thisIndex]);
-        grid.elementsGrid[thisIndex].velocity = 1.0f;
+        //thisElem->newPos = -1;
     }
 }
 
@@ -416,7 +383,9 @@ static void renderUI()
     sprintf(debugInfo, "Verts: %d, World verts: %d", vertCount, worldVertCount);
     drawText(0.0f, 0.0f, debugInfo);
 
-    drawText(0.0f, 20.0f, elementNames[selectedElement]);
+    char elemInfo[64];
+    sprintf(elemInfo, "Element: %s, Cursor radius: %d", elementNames[selectedElement], cursorRadius);
+    drawText(0.0f, 20.0f, elemInfo);
 }
 
 void init()
@@ -472,6 +441,31 @@ void update()
     if(d->keys[GLFW_KEY_F4].pressed)
         demouiToggleGraph();
     
+    if(d->keys[GLFW_KEY_UP].pressed)
+    {
+        selectedElement++;
+        if(selectedElement == LAST_ELEM)
+            selectedElement = AIR;
+    }
+    if(d->keys[GLFW_KEY_DOWN].pressed)
+    {
+        selectedElement--;
+        if(selectedElement <= AIR)
+            selectedElement = LAST_ELEM - 1;
+    }
+    if(d->keys[GLFW_KEY_RIGHT].pressed)
+    {
+        cursorRadius++;
+        if(cursorRadius > 4)
+            cursorRadius = 4;
+    }
+    if(d->keys[GLFW_KEY_LEFT].pressed)
+    {
+        cursorRadius--;
+        if(cursorRadius < 0)
+            cursorRadius = 0;
+    }
+
     if(d->mouse.buttons[GLFW_MOUSE_BUTTON_LEFT].down)
     {
         int mx = (int)d->mouse.position[0];
@@ -480,24 +474,15 @@ void update()
         {
             int gridx = (mx - grid.xmin) / SLOT_SIZE;
             int gridy = (my - grid.ymin) / SLOT_SIZE;
-            int index = Index(gridx, gridy);
-            if(grid.elementsGrid[index].id == AIR)
+            for(int x = gridx - cursorRadius; x <= gridx + cursorRadius; x++)
             {
-                createElemFuncs[selectedElement](&grid.elementsGrid[index]);
+                for(int y = gridy - cursorRadius; y <= gridy + cursorRadius; y++)
+                {
+                    createElemFuncs[selectedElement](&grid.elementsGrid[Index(x,y)]);
+                }
             }
+            //createElemFuncs[selectedElement](&grid.elementsGrid[Index(gridx,gridy)]);
         }
-    }
-    if(d->keys[GLFW_KEY_UP].pressed)
-    {
-        selectedElement++;
-        if(selectedElement >= LAST_ELEM)
-            selectedElement = SAND;
-    }
-    if(d->keys[GLFW_KEY_DOWN].pressed)
-    {
-        selectedElement--;
-        if(selectedElement <= AIR)
-            selectedElement = WATER;
     }
     
     updateGrid();
