@@ -18,6 +18,8 @@ static const char *CodepointToUtf8(int codepoint, int *byteLength);
 
 static Demo* d = NULL;
 static Demoui* dui = NULL;
+static bool valueEditMode = false;
+static int value = 5;
 
 static Vector2 GetMousePosition(void)
 {
@@ -79,11 +81,15 @@ static bool IsKeyPressed(int key)
 // USED IN: GuiTextBox(), GuiTextBoxMulti(), GuiValueBox()
 static int GetKeyPressed(void)
 {
-    return d->lastChar;
+    return 0;
 }
 
 static int GetCharPressed(void)
 {
+    static int last = 0;
+    if(d->lastChar == last)
+        return 0;
+    last = d->lastChar;
     return d->lastChar;
 }
 
@@ -229,7 +235,7 @@ void render()
         {
             demouiBeginRender(d->winSize[0], d->winSize[1], d->winSize[0] / d->fbSize[0]);
 
-            Rectangle panelBounds = {10.0f, 10.0f, 200.0f, 50.0f};
+            Rectangle panelBounds = {1.0f, 1.0f, 100.0f, 50.0f};
             Rectangle dropDown = {10.0f, 100.0f, 100.0f, 50.0f};
             //GuiPanel(panelBounds);
             //GuiDrawText("Kostas", (Rectangle){panelBounds.x, panelBounds.y,panelBounds.width,panelBounds.height}, GUI_TEXT_ALIGN_CENTER, (Color){0, 0, 0, 255});
@@ -241,8 +247,7 @@ void render()
             
             //int active = 0;
             //GuiDropdownBox(dropDown, "DropME", &active, false);
-            int val = 5;
-            GuiValueBox(dropDown, NULL, &val, 0, 10, false);
+            if(GuiValueBox(dropDown, NULL, &value, 0, 10, valueEditMode)) valueEditMode = !valueEditMode;
         }
         break;
     case PASS_FLUSH:

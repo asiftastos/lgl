@@ -38,6 +38,7 @@ typedef struct Demo
     int renderPass; //[PASS_3D or PASS_2D] used in render func, -1 for other funcs
     Button keys[GLFW_KEY_LAST];
     unsigned int lastChar;
+    int lastKey;
     Mouse mouse;
     double frameDelta;
     double cpuTime;

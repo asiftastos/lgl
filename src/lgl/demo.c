@@ -87,6 +87,7 @@ Demo* demoCreate(DemoFunc init, DemoFunc terminate, DemoFunc update, DemoFunc re
     demo->render = render;
     demo->renderPass = -1;
     demo->lastChar = 0;
+    demo->lastKey = 0;
 
     //glfw init
     glfwSetErrorCallback(demoErrorCallback);
