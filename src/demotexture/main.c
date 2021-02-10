@@ -15,8 +15,8 @@ static int quadTexture;
 
 static void render2D()
 {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, quadTexture);
     shaderUse(textureShader);
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model[0]);
@@ -26,7 +26,7 @@ static void render2D()
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
-    glDisable(GL_BLEND);
+    //glDisable(GL_BLEND);
 }
 
 void init()
@@ -35,9 +35,22 @@ void init()
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     dui = demouiInit();
 
+    mat4 rotate;
+    glm_mat4_identity(rotate);
     glm_mat4_identity(model);
+    glm_rotate_y(GLM_MAT4_IDENTITY, glm_rad(45.0f), rotate);
+    glm_translate_z(model, 20.0f);
+    glm_mul(model, rotate, model);
+    
+
+    mat4 view;
+    glm_mat4_identity(view);
+    glm_lookat((vec3){0.0f, 0.0f, -40.0f}, (vec3){0.0f, 0.0f, 0.0f}, GLM_YUP, view);
+    glm_mul(view, model, model);
+    
     glm_mat4_identity(proj);
-    glm_ortho(0.0f, d->fbSize[0], 0.0f, d->fbSize[1], 0.1f, 10.0f, proj);
+    //glm_ortho(0.0f, d->fbSize[0], 0.0f, d->fbSize[1], 0.1f, 10.0f, proj);
+    glm_perspective(glm_rad(60.0f), d->fbSize[0] / d->fbSize[1], 0.1f, 1000.0f, proj);
 
     quadTexture = nvgCreateImage(dui->vg, "assets/textures/wall.jpg", 0);
 
@@ -48,12 +61,12 @@ void init()
     glUseProgram(0);
 
     float quad[] = {
-        100.0f, 100.0f, -1.0f,      0.0f, 0.0f,
-        200.0f, 100.0f, -1.0f,      1.0f, 0.0f,
-        100.0f, 200.0f, -1.0f,      0.0f, 1.0f,
-        100.0f, 200.0f, -1.0f,      0.0f, 1.0f,
-        200.0f, 100.0f, -1.0f,      1.0f, 0.0f,
-        200.0f, 200.0f, -1.0f,      1.0f, 1.0f
+        0.0f, 0.0f,   0.0f,      0.0f, 0.0f,
+        20.0f, 0.0f,  0.0f,      1.0f, 0.0f,
+        0.0f, 20.0f,  0.0f,      0.0f, 1.0f,
+        0.0f, 20.0f,  0.0f,      0.0f, 1.0f,
+        20.0f, 0.0f,  0.0f,      1.0f, 0.0f,
+        20.0f, 20.0f, 0.0f,      1.0f, 1.0f
     };
 
     glGenVertexArrays(1, &quadVao);
@@ -92,9 +105,9 @@ void render()
     {
     case PASS_3D:
         demouiStartGPUTimer();
+        render2D();
         break;
     case PASS_2D:
-        render2D();
         break;
     case PASS_UI:
         {
