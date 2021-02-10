@@ -49,6 +49,12 @@ static void demoKey(GLFWwindow* win, int key, int scancode, int action, int mods
     }
 }
 
+static void demoChar(GLFWwindow* win, unsigned int codepoint)
+{
+    _CRT_UNUSED(win);
+    demo->lastChar = codepoint;
+}
+
 static void demoMouseButton(GLFWwindow* win, int button, int action, int mods)
 {
     _CRT_UNUSED(win);
@@ -80,6 +86,7 @@ Demo* demoCreate(DemoFunc init, DemoFunc terminate, DemoFunc update, DemoFunc re
     demo->update = update;
     demo->render = render;
     demo->renderPass = -1;
+    demo->lastChar = 0;
 
     //glfw init
     glfwSetErrorCallback(demoErrorCallback);
@@ -115,6 +122,7 @@ Demo* demoCreate(DemoFunc init, DemoFunc terminate, DemoFunc update, DemoFunc re
     glfwSetCursorPosCallback(demo->window, demoCursorPos);
     glfwSetKeyCallback(demo->window, demoKey);
     glfwSetMouseButtonCallback(demo->window, demoMouseButton);
+    glfwSetCharCallback(demo->window, demoChar);
 
     int w,h;
     glfwGetFramebufferSize(demo->window, &w, &h);

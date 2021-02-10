@@ -79,14 +79,12 @@ static bool IsKeyPressed(int key)
 // USED IN: GuiTextBox(), GuiTextBoxMulti(), GuiValueBox()
 static int GetKeyPressed(void)
 {
-    // TODO: Return last key pressed (up->down) in the frame
-    
-    return 0;
+    return d->lastChar;
 }
 
 static int GetCharPressed(void)
 {
-    return 0;
+    return d->lastChar;
 }
 
 static void DrawRectangle(int x, int y, int width, int height, Color color)
@@ -106,7 +104,12 @@ static void DrawRectangleGradientEx(Rectangle rec, Color col1, Color col2, Color
 // USED IN: GuiDropdownBox(), GuiScrollBar()
 static void DrawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color)
 { 
-    // TODO: Draw triangle on the screen, required for arrows
+    nvgBeginPath(dui->vg);
+    nvgMoveTo(dui->vg, v1.x, v1.y);
+    nvgLineTo(dui->vg, v2.x, v2.y);
+    nvgLineTo(dui->vg, v3.x, v3.y);
+    nvgFillColor(dui->vg, nvgRGBA(color.r, color.g, color.b, color.a));
+    nvgFill(dui->vg);
 }
 
 // USED IN: GuiImageButtonEx()
@@ -226,7 +229,8 @@ void render()
         {
             demouiBeginRender(d->winSize[0], d->winSize[1], d->winSize[0] / d->fbSize[0]);
 
-            Rectangle panelBounds = {10.0f, 10.0f, 200.0f, 100.0f};
+            Rectangle panelBounds = {10.0f, 10.0f, 200.0f, 50.0f};
+            Rectangle dropDown = {10.0f, 100.0f, 100.0f, 50.0f};
             //GuiPanel(panelBounds);
             //GuiDrawText("Kostas", (Rectangle){panelBounds.x, panelBounds.y,panelBounds.width,panelBounds.height}, GUI_TEXT_ALIGN_CENTER, (Color){0, 0, 0, 255});
             //GuiLabel(panelBounds, "Kostas");
@@ -234,6 +238,11 @@ void render()
             //bool buttoncloseclicked = GuiWindowBox(panelBounds, "Debug");
             if(GuiButton(panelBounds, "Exit"))
                 glfwSetWindowShouldClose(d->window, GLFW_TRUE);
+            
+            //int active = 0;
+            //GuiDropdownBox(dropDown, "DropME", &active, false);
+            int val = 5;
+            GuiValueBox(dropDown, NULL, &val, 0, 10, false);
         }
         break;
     case PASS_FLUSH:
