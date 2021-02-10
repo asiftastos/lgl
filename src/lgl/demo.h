@@ -24,6 +24,7 @@ typedef struct Mouse
     Button buttons[GLFW_MOUSE_BUTTON_LAST];
     vec2 position;
     vec2 delta;
+    float wheelDelta;
 }Mouse;
 
 typedef struct Demo

@@ -75,6 +75,13 @@ static void demoMouseButton(GLFWwindow* win, int button, int action, int mods)
     }
 }
 
+static void demoScroll(GLFWwindow* win, double xoff, double yoff)
+{
+    _CRT_UNUSED(win);
+
+    demo->mouse.wheelDelta = yoff;
+}
+
 Demo* demoCreate(DemoFunc init, DemoFunc terminate, DemoFunc update, DemoFunc render)
 {
     demo = (Demo*)calloc(1, sizeof(Demo));
@@ -123,6 +130,7 @@ Demo* demoCreate(DemoFunc init, DemoFunc terminate, DemoFunc update, DemoFunc re
     glfwSetKeyCallback(demo->window, demoKey);
     glfwSetMouseButtonCallback(demo->window, demoMouseButton);
     glfwSetCharCallback(demo->window, demoChar);
+    glfwSetScrollCallback(demo->window, demoScroll);
 
     int w,h;
     glfwGetFramebufferSize(demo->window, &w, &h);
@@ -201,6 +209,8 @@ void demoRun()
         //poll & swap
         glfwPollEvents();
         glfwSwapBuffers(demo->window);
+
+        demo->mouse.wheelDelta = 0.0f;
     }
     
     demo->terminate();
