@@ -1,5 +1,5 @@
 project "demo2d"
-    targetname "demo2d"
+    targetname "dm2d"
     targetdir "../"
 	language "C"
     kind "ConsoleApp"
@@ -43,7 +43,7 @@ project "demo2d"
 	configuration {}
 
 project "demotext"
-    targetname "demotext"
+    targetname "dmtext"
     targetdir "../"
 	language "C"
     kind "ConsoleApp"
@@ -83,7 +83,7 @@ project "demotext"
 	configuration {}
 
 project "demohashtable"
-    targetname "demoht"
+    targetname "dmht"
     targetdir "../"
 	language "C"
     kind "ConsoleApp"
@@ -103,7 +103,7 @@ project "demohashtable"
 		"-m64", "-Wno-unused-function"
     }
     libdirs { "../build" }
-	links {"Common"}
+	links {"lgl"}
 	configuration "windows"
 		defines { "_WIN32", "_GLFW_WIN32"}
 		links { "gdi32" }
@@ -119,7 +119,7 @@ project "demohashtable"
 	configuration {}
 
 project "demosandsim"
-    targetname "demosm"
+    targetname "dmsandsim"
     targetdir "../"
 	language "C"
     kind "ConsoleApp"
@@ -161,7 +161,7 @@ project "demosandsim"
 
 
 project "demorayui"
-    targetname "demorui"
+    targetname "dmrayui"
     targetdir "../"
 	language "C"
     kind "ConsoleApp"
@@ -205,7 +205,7 @@ project "demorayui"
 	configuration {}
 
 project "demotexturing"
-    targetname "demotex"
+    targetname "dmtextures"
     targetdir "../"
 	language "C"
     kind "ConsoleApp"
