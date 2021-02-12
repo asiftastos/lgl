@@ -11,21 +11,21 @@ static void demoErrorCallback(int error, const char* desc)
 static void demoFramebufferSize(GLFWwindow* win, int w, int h)
 {
     _CRT_UNUSED(win);
-    glm_vec2((vec2){w, h}, demo->fbSize);
+    demo->fbSize = (vec2s){{w, h}};
     glViewport(0, 0, w, h);
 }
 
 static void demoWindowSize(GLFWwindow* win, int w, int h)
 {
     _CRT_UNUSED(win);
-    glm_vec2((vec2){w, h}, demo->winSize);
+    demo->winSize = (vec2s){{w, h}};
 }
 
 static void demoCursorPos(GLFWwindow* win, double x, double y)
 {
     _CRT_UNUSED(win);
-    glm_vec2_sub((vec2){x, y}, demo->mouse.position, demo->mouse.delta);
-    glm_vec2((vec2){x,y}, demo->mouse.position);
+    demo->mouse.delta = glms_vec2_sub((vec2s){{x, y}}, demo->mouse.position);
+    demo->mouse.position = (vec2s){{x,y}};
 }
 
 static void demoKey(GLFWwindow* win, int key, int scancode, int action, int mods)
@@ -87,7 +87,7 @@ Demo* demoCreate(DemoFunc init, DemoFunc terminate, DemoFunc update, DemoFunc re
     demo = (Demo*)calloc(1, sizeof(Demo));
     assert(demo);
 
-    glm_vec2((vec2){800, 600}, demo->winSize);
+    demo->winSize = (vec2s){{800, 600}};
     demo->init = init;
     demo->terminate = terminate;
     demo->update = update;
@@ -105,11 +105,11 @@ Demo* demoCreate(DemoFunc init, DemoFunc terminate, DemoFunc update, DemoFunc re
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    demo->window = glfwCreateWindow(demo->winSize[0], demo->winSize[1], "Demo", NULL, NULL);
+    demo->window = glfwCreateWindow(demo->winSize.x, demo->winSize.y, "Demo", NULL, NULL);
     assert(demo->window);
     const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    int xpos = (vmode->width - demo->winSize[0]) / 2;
-    int ypos = (vmode->height - demo->winSize[1]) / 2;
+    int xpos = (vmode->width - demo->winSize.x) / 2;
+    int ypos = (vmode->height - demo->winSize.y) / 2;
     glfwSetWindowPos(demo->window, xpos, ypos);
     glfwShowWindow(demo->window);
     glfwMakeContextCurrent(demo->window);
@@ -134,7 +134,7 @@ Demo* demoCreate(DemoFunc init, DemoFunc terminate, DemoFunc update, DemoFunc re
 
     int w,h;
     glfwGetFramebufferSize(demo->window, &w, &h);
-    glm_vec2((vec2){w,h}, demo->fbSize);
+    demo->fbSize = (vec2s){{w,h}};
     
     return demo;
 }
@@ -182,7 +182,7 @@ void demoRun()
         demoUpdateButtons(GLFW_KEY_LAST, demo->keys);
         demoUpdateButtons(GLFW_MOUSE_BUTTON_LAST, demo->mouse.buttons);
         demo->update();
-        glm_vec2((vec2){0.0f, 0.0f}, demo->mouse.delta);
+        demo->mouse.delta = GLMS_VEC2_ZERO;
 
         
         //rendering

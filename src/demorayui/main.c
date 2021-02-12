@@ -25,8 +25,8 @@ static Vector2 GetMousePosition(void)
 {
     Vector2 position = { 0 };
     
-    position.x = d->mouse.position[0];
-    position.y = d->mouse.position[1];
+    position.x = d->mouse.position.x;
+    position.y = d->mouse.position.y;
     
     return position;
 }
@@ -232,7 +232,7 @@ void render()
         break;
     case PASS_UI:
         {
-            demouiBeginRender(d->winSize[0], d->winSize[1], d->winSize[0] / d->fbSize[0]);
+            demouiBeginRender(d->winSize.x, d->winSize.y, d->winSize.x / d->fbSize.x);
 
             Rectangle panelBounds = {1.0f, 1.0f, 100.0f, 50.0f};
             Rectangle dropDown = {10.0f, 100.0f, 100.0f, 50.0f};
@@ -251,7 +251,7 @@ void render()
         break;
     case PASS_FLUSH:
         {
-            demouiEndRender(d->winSize[0] - 200 - 5, 5);
+            demouiEndRender(d->winSize.x - 200 - 5, 5);
             demouiUpdateGraphs(d->cpuTime, d->frameDelta);
         }
         break;

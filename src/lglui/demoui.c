@@ -3,9 +3,10 @@
 #include <assert.h>
 #include "glad.h"
 #include "GLFW/glfw3.h"
-#include "demoui.h"
+#include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
 #include "nanovg_gl.h"
+#include "demoui.h"
 
 #define GRAPH_HISTORY_COUNT 100
 #define GPU_QUERY_COUNT 5

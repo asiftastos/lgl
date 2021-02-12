@@ -34,7 +34,7 @@ typedef struct Element
     unsigned char id;
     float lifetime;
     float velocity;
-    vec4 color;
+    vec4s color;
     int newPos;
 }Element;
 
@@ -42,9 +42,9 @@ typedef void (*CreateElemFN)(Element* e);
 typedef void (*UpdateElemFN)(int x, int y);
 
 //vertex uniforms
-static mat4 model;
+static mat4s model;
 static int modelLoc;
-static mat4 proj;
+static mat4s proj;
 static int projLoc;
 
 //grid
@@ -90,7 +90,7 @@ void Air(Element* e)
     e->id = AIR;
     e->velocity = 0.0f;
     e->lifetime = 0.0f;
-    glm_vec4((vec3){0.0f,0.0f,0.0f}, 0.0f, e->color);
+    e->color = (vec4s){{0.0f,0.0f,0.0f,1.0f}};
 }
 
 void Sand(Element* e)
@@ -99,7 +99,7 @@ void Sand(Element* e)
     e->id = SAND;
     e->lifetime = 0.0f;
     e->velocity = 1.0f;
-    glm_vec4((vec3){0.9f,0.76f,0.16f}, 1.0f, e->color);
+    e->color = (vec4s){{0.9f,0.76f,0.16f, 1.0f}};
 }
 
 void Stone(Element* e)
@@ -108,7 +108,7 @@ void Stone(Element* e)
     e->id = STONE;
     e->lifetime = 0.0f;
     e->velocity = 0.0f;
-    glm_vec4((vec3){0.35f,0.35f,0.40f}, 1.0f, e->color);
+    e->color= (vec4s){{0.35f,0.35f,0.40f, 1.0f}};
 }
 
 void Water(Element* e)
@@ -117,7 +117,7 @@ void Water(Element* e)
     e->id = WATER;
     e->lifetime = 0.0f;
     e->velocity = 1.5f;
-    glm_vec4((vec3){0.05f,0.2f,0.9f}, 1.0f, e->color);
+    e->color = (vec4s){{0.05f,0.2f,0.9f, 1.0f}};
 }
 
 void updateSand(int x, int y)
@@ -221,36 +221,36 @@ void initElements()
     updateElemFuncs[WATER] = updateWater;
 }
 
-int addVertexColor(int index, vec3 v, vec4 color)
+int addVertexColor(int index, vec3s v, vec4s color)
 {
-    vertexBuffer[index] = v[0];
-    vertexBuffer[index+1] = v[1];
-    vertexBuffer[index+2] = v[2];
-    vertexBuffer[index+3] = color[0];
-    vertexBuffer[index+4] = color[1];
-    vertexBuffer[index+5] = color[2];
-    vertexBuffer[index+6] = color[3];
+    vertexBuffer[index] = v.x;
+    vertexBuffer[index+1] = v.y;
+    vertexBuffer[index+2] = v.z;
+    vertexBuffer[index+3] = color.x;
+    vertexBuffer[index+4] = color.y;
+    vertexBuffer[index+5] = color.z;
+    vertexBuffer[index+6] = color.w;
     return index+7;
 }
 
-void drawElement(int x, int y, int w, int h, vec4 color)
+void drawElement(int x, int y, int w, int h, vec4s color)
 {
     int index = vertCount;
-    index = addVertexColor(index, (vec3){x, y, -1.0f}, color);
-    index = addVertexColor(index, (vec3){x+w, y, -1.0f}, color);
-    index = addVertexColor(index, (vec3){x, y+h, -1.0f}, color);
-    index = addVertexColor(index, (vec3){x, y+h, -1.0f}, color);
-    index = addVertexColor(index, (vec3){x+w, y, -1.0f}, color);
-    index = addVertexColor(index, (vec3){x+w, y+h, -1.0f}, color);
+    index = addVertexColor(index, (vec3s){{x, y, -1.0f}}, color);
+    index = addVertexColor(index, (vec3s){{x+w, y, -1.0f}}, color);
+    index = addVertexColor(index, (vec3s){{x, y+h, -1.0f}}, color);
+    index = addVertexColor(index, (vec3s){{x, y+h, -1.0f}}, color);
+    index = addVertexColor(index, (vec3s){{x+w, y, -1.0f}}, color);
+    index = addVertexColor(index, (vec3s){{x+w, y+h, -1.0f}}, color);
     vertCount = index;
     worldVertCount += 6;
 }
 
 void initGrid()
 {
-    grid.xmin = (d->winSize[0] - GRID_SIZE) / 2;
+    grid.xmin = (d->winSize.x - GRID_SIZE) / 2;
     grid.xmax = grid.xmin + GRID_SIZE;
-    grid.ymin = (d->winSize[1] - GRID_SIZE) / 2;
+    grid.ymin = (d->winSize.y - GRID_SIZE) / 2;
     grid.ymax = grid.ymin + GRID_SIZE;
 
     float verts[] = {
@@ -350,8 +350,8 @@ static void renderGrid()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     shaderUse(sh);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model[0]);
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj[0]);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.raw[0]);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj.raw[0]);
 
     glBindVertexArray(gridVao);
     glDrawArrays(GL_LINE_LOOP, 0, 4);
@@ -377,7 +377,7 @@ static void drawText(float x, float y, const char* txt)
 
 static void renderUI()
 {
-    demouiBeginRender(d->winSize[0], d->winSize[1], d->winSize[0] / d->fbSize[0]);
+    demouiBeginRender(d->winSize.x, d->winSize.y, d->winSize.x / d->fbSize.x);
 
     char debugInfo[64];
     sprintf(debugInfo, "Verts: %d, World verts: %d", vertCount, worldVertCount);
@@ -401,9 +401,8 @@ void init()
     initElements();
     initGrid();
     
-    glm_mat4_identity(model);
-    glm_mat4_identity(proj);
-    glm_ortho(0.0f, d->fbSize[0], d->fbSize[1], 0.0f, 0.1f, 10.0f, proj);    
+    model = glms_mat4_identity();
+    proj = glms_ortho(0.0f, d->fbSize.x, d->fbSize.y, 0.0f, 0.1f, 10.0f);
 
     //glPointSize(2.0f);
     vertexBuffer = (float*)malloc(sizeof(float)*numOfSlots*7*6);
@@ -468,8 +467,8 @@ void update()
 
     if(d->mouse.buttons[GLFW_MOUSE_BUTTON_LEFT].down)
     {
-        int mx = (int)d->mouse.position[0];
-        int my = (int)d->mouse.position[1];
+        int mx = (int)d->mouse.position.x;
+        int my = (int)d->mouse.position.y;
         if(mx > grid.xmin && mx < grid.xmax && my > grid.ymin && my < grid.ymax)
         {
             int gridx = (mx - grid.xmin) / SLOT_SIZE;
@@ -507,7 +506,7 @@ void render()
         {
             renderGrid();
 
-            demouiEndRender(d->winSize[0] - 200 - 5, 5);
+            demouiEndRender(d->winSize.x - 200 - 5, 5);
             demouiUpdateGraphs(d->cpuTime, d->frameDelta);
         }
         break;

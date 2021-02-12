@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "glad.h"
 #include "GLFW/glfw3.h"
-#include "cglm.h"
+#include "struct.h"
 #include "assets.h"
 
 typedef enum RenderPass { PASS_3D, PASS_2D, PASS_UI, PASS_FLUSH }RenderPass;
@@ -22,16 +22,16 @@ typedef struct Button
 typedef struct Mouse
 {
     Button buttons[GLFW_MOUSE_BUTTON_LAST];
-    vec2 position;
-    vec2 delta;
+    vec2s position;
+    vec2s delta;
     float wheelDelta;
 }Mouse;
 
 typedef struct Demo
 {
     GLFWwindow* window;
-    vec2 winSize;
-    vec2 fbSize;
+    vec2s winSize;
+    vec2s fbSize;
     DemoFunc init;
     DemoFunc terminate;
     DemoFunc update;

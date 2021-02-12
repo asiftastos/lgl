@@ -5,15 +5,14 @@ typedef void (*PanelAction)();
 
 typedef struct Panel
 {
-    vec2 position;
-    vec2 size;
+    vec2s position;
+    vec2s size;
     float alphas[3];
-    vec3 colors[3];
+    vec3s colors[3];
     int color;
     int alpha;
     int alphaLoc;
     GLuint vbo;
-    mat3 model;
     PanelAction clicked;
     double clickedDelay;
 }Panel;
@@ -23,34 +22,30 @@ static Demoui* dui = NULL;
 static Shader* simple = NULL;
 static GLuint vao;
 static int colorLoc;
-static mat4 model;
+static mat4s model;
 static int modelLoc;
-static mat4 proj;
+static mat4s proj;
 static int projLoc;
 static Panel panel;
 
 static void panelCreate()
 {
-    glm_vec2((vec2){10.0f, 10.0f}, panel.position);
-    mat3 invmodel;
-    glm_mat3_identity(invmodel);
-    glm_translate2d(invmodel, panel.position);
-    glm_mat3_inv(invmodel, panel.model);
-    glm_vec2((vec2){ 100.0f, 50.0f}, panel.size);
+    panel.position = (vec2s){{10.0f, 10.0f}};
+    panel.size = (vec2s){{ 100.0f, 50.0f }};
     panel.alpha = 0;
     panel.alphas[0] = 0.2f;
     panel.alphas[1] = 0.8f;
     panel.alphas[2] = 0.9f;
     panel.color = 0;
-    glm_vec3((vec4){1.0f, 0.0f, 0.0f, 1.0f}, panel.colors[0]);
-    glm_vec3((vec4){0.0f, 1.0f, 0.0f, 1.0f}, panel.colors[1]);
-    glm_vec3((vec4){0.0f, 0.0f, 1.0f, 1.0f}, panel.colors[2]);
+    panel.colors[0] = (vec3s){{1.0f, 0.0f, 0.0f}};
+    panel.colors[1] = (vec3s){{0.0f, 1.0f, 0.0f}};
+    panel.colors[2] = (vec3s){{0.0f, 0.0f, 1.0f}};
     panel.clickedDelay = 0.0f;
     
     float xmin = 0.0f;
-    float xmax = panel.size[0];
+    float xmax = panel.size.x;
     float ymin = 0.0f;
-    float ymax = panel.size[1];
+    float ymax = panel.size.y;
 
     const float vertbuffer[] = 
     {
@@ -75,11 +70,11 @@ static void panelCreate()
 
 static bool panelHover()
 {
-    float xmax = panel.position[0] + panel.size[0];
-    float ymax = panel.position[1] + panel.size[1];
-    float mx = d->mouse.position[0];
-    float my = d->mouse.position[1];
-    return mx > panel.position[0] && mx < xmax && my > panel.position[1] && my < ymax;
+    float xmax = panel.position.x + panel.size.x;
+    float ymax = panel.position.y + panel.size.y;
+    float mx = d->mouse.position.x;
+    float my = d->mouse.position.y;
+    return mx > panel.position.x && mx < xmax && my > panel.position.y && my < ymax;
 }
 
 static void OnPanelClicked()
@@ -102,13 +97,10 @@ void init()
     panel.alphaLoc = glGetUniformLocation(simple->program, "alpha");
     panel.clicked = OnPanelClicked;
     
-    //printf("Alpha location: %d\n", alphaLoc);
-    glm_mat4_identity(model);
-    //glm_scale(model, (vec3){2.5f, 1.5f, 1.0f});
-    //glm_translate(model, (vec3){panel.position[0], panel.position[1], 0.0f});
-    glm_mat4_ins3(panel.model, model);
-    glm_mat4_identity(proj);
-    glm_ortho(0.0f, d->fbSize[0],  d->fbSize[1], 0.0f, 0.1f, 100.0f, proj);
+    model = glms_mat4_identity();
+    model = glms_translate_make((vec3s){{panel.position.x, panel.position.y, -1.0f}});
+    proj = glms_mat4_identity();
+    proj = glms_ortho(0.0f, d->fbSize.x, d->fbSize.y, 0.0f, 0.1f, 100.0f);
 
     dui = demouiInit();
 }
@@ -170,10 +162,10 @@ void render()
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         shaderUse(simple);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model[0]);
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj[0]);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.raw[0]);
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj.raw[0]);
         glUniform1f(panel.alphaLoc, panel.alphas[panel.alpha]);
-        glUniform3fv(colorLoc, 1, panel.colors[panel.color]);
+        glUniform3fv(colorLoc, 1, panel.colors[panel.color].raw);
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, panel.vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -183,10 +175,10 @@ void render()
         glUseProgram(0);
     }else if(d->renderPass == PASS_UI && dui->showGraphs)
     {
-        demouiBeginRender(d->winSize[0], d->winSize[1], d->winSize[0] / d->fbSize[0]);
+        demouiBeginRender(d->winSize.x, d->winSize.y, d->winSize.x / d->fbSize.x);
     }else if(d->renderPass == PASS_FLUSH)
     {
-        demouiEndRender(d->winSize[0] - 200 - 5, 5);
+        demouiEndRender(d->winSize.x - 200 - 5, 5);
         demouiUpdateGraphs(d->cpuTime, d->frameDelta);
     }
 }

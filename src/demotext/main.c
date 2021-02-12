@@ -5,8 +5,8 @@
 
 typedef struct VertexTexture
 {
-    vec3 vertex;
-    vec2 texCoord;
+    vec3s vertex;
+    vec2s texCoord;
 }VertexTexture;
 
 typedef struct TextElem
@@ -15,7 +15,7 @@ typedef struct TextElem
     GLuint vbo;
     GLuint ebo;
     char* text;
-    vec2 position;
+    vec2s position;
     bool changed;
     int indexCount;
 }TextElem;
@@ -28,9 +28,9 @@ static uint32_t charCount = '~' - ' ';
 static GLuint fontTextureAtlas;
 static TextElem debugText;
 static Shader* textsh;
-static mat4 model;
+static mat4s model;
 static int modelLoc;
-static mat4 proj;
+static mat4s proj;
 static int projLoc;
 
 
@@ -53,13 +53,13 @@ static void updateText()
         const float ymin = -quad.y0; //top
         const float ymax = -quad.y1; //bottom
         
-        VertexTexture vt1 = {{xmin, ymin, -1.0f}, {quad.s0, quad.t1}};
+        VertexTexture vt1 = {(vec3s){{xmin, ymin, -1.0f}}, (vec2s){{quad.s0, quad.t1}}};
         arrput(vertbuffer, vt1);
-        VertexTexture vt2 = {{xmin, ymax, -1.0f}, {quad.s0, quad.t0}};
+        VertexTexture vt2 = {(vec3s){{xmin, ymax, -1.0f}}, (vec2s){{quad.s0, quad.t0}}};
         arrput(vertbuffer, vt2);
-        VertexTexture vt3 = {{xmax, ymax, -1.0f}, {quad.s1, quad.t0}};
+        VertexTexture vt3 = {(vec3s){{xmax, ymax, -1.0f}}, (vec2s){{quad.s1, quad.t0}}};
         arrput(vertbuffer, vt3);
-        VertexTexture vt4 = {{xmax, ymin, -1.0f}, {quad.s1, quad.t1}};
+        VertexTexture vt4 = {(vec3s){{xmax, ymin, -1.0f}}, (vec2s){{quad.s1, quad.t1}}};
         arrput(vertbuffer, vt4);
 
         uint16_t lastIndex = arrlen(vertbuffer) - 4;
@@ -95,8 +95,8 @@ static void updateText()
 static void drawText()
 {
     shaderUse(textsh);
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj[0]);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model[0]);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj.raw[0]);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.raw[0]);
     glBindTexture(GL_TEXTURE_2D, fontTextureAtlas);
     glBindVertexArray(debugText.vao);
     glDrawElements(GL_TRIANGLES, debugText.indexCount, GL_UNSIGNED_SHORT, NULL);
@@ -220,13 +220,13 @@ static void initSDF()
         float xmax = xpos + (float)fc.w;
         float ymin = ypos - (float)(fc.h - yoff); //reversed, from top-left to bottom-left
         float ymax = ypos;
-        VertexTexture vt1 = {{xmin, ymin, -1.0f}, {ar.x0, ar.y0}};
+        VertexTexture vt1 = {(vec3s){{xmin, ymin, -1.0f}}, (vec2s){{ar.x0, ar.y0}}};
         arrput(vertbuffer, vt1);
-        VertexTexture vt2 = {{xmin, ymax, -1.0f}, {ar.x0, ar.y1}};
+        VertexTexture vt2 = {(vec3s){{xmin, ymax, -1.0f}}, (vec2s){{ar.x0, ar.y1}}};
         arrput(vertbuffer, vt2);
-        VertexTexture vt3 = {{xmax, ymax, -1.0f}, {ar.x1, ar.y1}};
+        VertexTexture vt3 = {(vec3s){{xmax, ymax, -1.0f}}, (vec2s){{ar.x1, ar.y1}}};
         arrput(vertbuffer, vt3);
-        VertexTexture vt4 = {{xmax, ymin, -1.0f}, {ar.x1, ar.y0}};
+        VertexTexture vt4 = {(vec3s){{xmax, ymin, -1.0f}}, (vec2s){{ar.x1, ar.y0}}};
         arrput(vertbuffer, vt4);
 
         uint16_t lastIndex = arrlen(vertbuffer) - 4;
@@ -265,8 +265,8 @@ static void initSDF()
 static void drawSDF()
 {
     shaderUse(sdfShader);
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj[0]);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model[0]);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj.raw[0]);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.raw[0]);
     glBindTexture(GL_TEXTURE_2D, sdfTexture);
     glBindVertexArray(sdfText.vao);
     glDrawElements(GL_TRIANGLES, sdfText.indexCount, GL_UNSIGNED_SHORT, NULL);
@@ -314,11 +314,9 @@ void demoInit()
     shaderUse(textsh);
     modelLoc = glGetUniformLocation(textsh->program, "model");
     projLoc = glGetUniformLocation(textsh->program, "proj");
-    glm_mat4_identity(model);
-    glm_scale(model, (vec3){1.0f, 1.0f, 1.0f});
+    model = glms_scale(GLMS_MAT4_IDENTITY, (vec3s){{1.0f, 1.0f, 1.0f}});
     //glm_translate(model, (vec3){10.0f, 10.0f, 0.0f});
-    glm_mat4_identity(proj);
-    glm_ortho(0.0f, d->fbSize[0], d->fbSize[1], 0.0f, 0.1f, 100.0f, proj);
+    proj = glms_ortho(0.0f, d->fbSize.x, d->fbSize.y, 0.0f, 0.1f, 100.0f);
 
     loadSDF();
     sdfText.text = "Konstantinos";
