@@ -247,3 +247,48 @@ project "demotexturing"
         flags       { "OptimizeSize" }
 	
 	configuration {}
+
+project "demomicroui"
+    targetname "dmmui"
+    targetdir "../"
+	language "C"
+    kind "ConsoleApp"
+	flags {
+		"ExtraWarnings",
+		"No64BitChecks",
+		"StaticRuntime"
+	}
+	includedirs {
+		"../libs/glad",
+		"../libs/glfw",
+		"../libs/cglm/include/cglm", 
+		"../libs/stb",
+		"../libs/nanovg",
+		"../src"
+	}
+	files {
+		"demomicroui/main.c",
+		"demomicroui/microui.c"
+	}
+	buildoptions {
+		"-m64",
+		"-Wno-unused-parameter",
+		"-Wno-unused-function",
+		"-Wno-missing-field-initializers",
+		"-Wno-sign-compare"
+    }
+    libdirs { "../build" }
+	links {"lgl", "lglui"}
+	configuration "windows"
+		defines { "_WIN32", "_GLFW_WIN32"}
+		links { "gdi32" }
+	
+	configuration "Debug"
+		targetsuffix "d"
+		defines     { "_DEBUG" }
+        flags       { "Symbols" }
+	configuration "Release"
+		defines     { "NDEBUG" }
+        flags       { "OptimizeSize" }
+	
+	configuration {}
