@@ -408,7 +408,7 @@ void init()
     vertexBuffer = (float*)malloc(sizeof(float)*numOfSlots*7*6);
     memset(vertexBuffer, 0, sizeof(float)*numOfSlots*7*6);
 
-    dui = demouiInit();
+    dui = demouiInit(d);
 }
 
 void terminate()

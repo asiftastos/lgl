@@ -33,7 +33,7 @@ void init()
 {
     printf("Demo texturing initialized\n");
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    dui = demouiInit();
+    dui = demouiInit(d);
 
     mat4s rotate = glms_rotate_y(GLMS_MAT4_IDENTITY, glm_rad(45.0f));
     model = glms_translate_z(GLMS_MAT4_IDENTITY, 20.0f);

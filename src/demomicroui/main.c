@@ -124,7 +124,7 @@ void init()
 {
     printf("Demo microui initialized\n");
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    dui = demouiInit();
+    dui = demouiInit(d);
     muiContext = (mu_Context*)malloc(sizeof(mu_Context));
     mu_init(muiContext);
     muiContext->text_width = uiTextWidth;

@@ -102,7 +102,7 @@ void init()
     proj = glms_mat4_identity();
     proj = glms_ortho(0.0f, d->fbSize.x, d->fbSize.y, 0.0f, 0.1f, 100.0f);
 
-    dui = demouiInit();
+    dui = demouiInit(d);
 }
 
 void terminate()

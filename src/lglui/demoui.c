@@ -9,6 +9,16 @@
 #include "nanovg_gl.h"
 #include "demoui.h"
 
+//keys
+#define KEY_LEFT_SHIFT GLFW_KEY_LEFT_SHIFT 
+#define KEY_RIGHT_SHIFT GLFW_KEY_RIGHT_SHIFT 
+
+static const char *CodepointToUtf8(int codepoint, int *byteLength);
+
+#define RAYGUI_IMPLEMENTATION
+#define RAYGUI_STANDALONE
+#include "raygui.h"
+
 #define GRAPH_HISTORY_COUNT 100
 #define GPU_QUERY_COUNT 5
 
@@ -216,7 +226,7 @@ static int stopGPUTimer(GPUtimer* timer, float* times, int maxTimes)
 Demoui* demouiInit(Demo* dm)
 {
 	demo = dm;
-	
+
     demoui = (Demoui*)calloc(1, sizeof(Demoui));
     assert(demoui);
 
@@ -288,3 +298,173 @@ void demouiUpdateGraphs(float cpuTime, float frameDelta)
     for (int i = 0; i < n; i++)
 	    updateGraph(&perfGraphs[2], gpuTimes[i]);
 }
+
+static Vector2 GetMousePosition(void)
+{
+    Vector2 position = { 0 };
+    
+    position.x = demo->mouse.position.x;
+    position.y = demo->mouse.position.y;
+    
+    return position;
+}
+
+static int GetMouseWheelMove(void)
+{
+    // NOTE: Mouse wheel movement variation, reseted every frame
+    return (int)demo->mouse.wheelDelta;
+}
+
+static bool IsMouseButtonDown(int button)
+{
+    if(demo->mouse.buttons[button].down)
+        return true;
+    
+    return false;
+}
+
+static bool IsMouseButtonPressed(int button)
+{
+    if(demo->mouse.buttons[button].pressed)
+        return true;
+    
+    return false;
+}
+
+static bool IsMouseButtonReleased(int button)
+{
+    if(demo->mouse.buttons[button].pressed)
+        return true;
+    
+    return false;
+}
+
+static bool IsKeyDown(int key)
+{
+    if(demo->keys[key].down)
+        return true;
+    
+    return false;
+}
+
+static bool IsKeyPressed(int key)
+{
+    if(demo->keys[key].pressed)
+        return true;
+    
+    return false;
+}
+
+// USED IN: GuiTextBox(), GuiTextBoxMulti(), GuiValueBox()
+static int GetKeyPressed(void)
+{
+    return 0;
+}
+
+static int GetCharPressed(void)
+{
+    static int last = 0;
+    if(demo->lastChar == last)
+        return 0;
+    last = demo->lastChar;
+    return demo->lastChar;
+}
+
+static void DrawRectangle(int x, int y, int width, int height, Color color)
+{ 
+    nvgBeginPath(demoui->vg);
+	nvgRect(demoui->vg, x,y, width, height);
+	nvgFillColor(demoui->vg, nvgRGBA(color.r,color.g,color.b,color.a));
+	nvgFill(demoui->vg);
+}
+
+// USED IN: GuiColorPicker()
+static void DrawRectangleGradientEx(Rectangle rec, Color col1, Color col2, Color col3, Color col4)
+{
+    // TODO: Draw rectangle with gradients (4 vertex colors) on the screen
+}
+
+// USED IN: GuiDropdownBox(), GuiScrollBar()
+static void DrawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color)
+{ 
+    nvgBeginPath(demoui->vg);
+    nvgMoveTo(demoui->vg, v1.x, v1.y);
+    nvgLineTo(demoui->vg, v2.x, v2.y);
+    nvgLineTo(demoui->vg, v3.x, v3.y);
+    nvgFillColor(demoui->vg, nvgRGBA(color.r, color.g, color.b, color.a));
+    nvgFill(demoui->vg);
+}
+
+// USED IN: GuiImageButtonEx()
+static void DrawTextureRec(Texture2D texture, Rectangle sourceRec, Vector2 position, Color tint)
+{
+    // TODO: Draw texture (piece defined by source rectangle) on screen
+}
+
+// USED IN: GuiTextBoxMulti()
+static void DrawTextRec(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint)
+{
+    // TODO: Draw text limited by a rectangle. This advance function wraps the text inside the rectangle
+}
+
+// USED IN: GuiLoadStyleDefault()
+static Font GetFontDefault(void)
+{
+    Font font = { 0 };
+    
+    // TODO: Return default rendering Font for the UI
+    
+    return font; 
+}
+
+// USED IN: GetTextWidth(), GuiTextBoxMulti()
+static Vector2 MeasureTextEx(Font font, const char *text, float fontSize, float spacing) 
+{ 
+    Vector2 size = { 0 };
+    
+    nvgTextLetterSpacing(demoui->vg, spacing);
+    nvgFontSize(demoui->vg, fontSize);
+    float bounds[4];
+    nvgTextBounds(demoui->vg, 0.0f, 0.0f, text, NULL, bounds);
+    size.x = bounds[2] - bounds[0];
+    size.y = bounds[3] - bounds[1];
+    
+    return size;
+}
+
+// USED IN: GuiDrawText()
+static void DrawTextEx(Font font, const char *text, Vector2 position, float fontSize, float spacing, Color tint)
+{
+    nvgFontFace(demoui->vg, "sans");
+    nvgFontSize(demoui->vg, fontSize);
+	nvgTextAlign(demoui->vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
+    nvgTextLetterSpacing(demoui->vg, spacing);
+	nvgFillColor(demoui->vg, nvgRGBA(tint.r,tint.g,tint.b,tint.a));
+	nvgText(demoui->vg, position.x,position.y, text, NULL);
+}
+
+static Font LoadFontEx(const char *fileName, int fontSize, int *fontChars, int charsCount)
+{
+    Font font = { 0 };
+    
+    // TODO: Load a new font from a file
+    
+    return font; 
+}
+
+static char *LoadText(const char *fileName)
+{
+    // TODO: Load text file data, used by GuiLoadStyle() to load characters list required on Font generation,
+    // this is a .rgs feature, probably this function is not required in most cases
+
+    return NULL;
+}
+
+static const char *GetDirectoryPath(const char *filePath)
+{
+    // TODO: Get directory path for .rgs file, required to look for a possible .ttf/.otf font file referenced,
+    // this is a .rgs feature, probably this function is not required in most cases
+    
+    return NULL;
+}
+
