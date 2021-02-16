@@ -1,8 +1,9 @@
-#include <stdlib.h>
-#include <stdbool.h>
-#include <assert.h>
-#include "glad.h"
-#include "GLFW/glfw3.h"
+//#include <stdlib.h>
+//#include <stdbool.h>
+//#include <assert.h>
+//#include "glad.h"
+//#include "GLFW/glfw3.h"
+#include "demo.h"
 #include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
 #include "nanovg_gl.h"
@@ -31,6 +32,7 @@ typedef struct GPUtimer
 	unsigned int queries[GPU_QUERY_COUNT];
 }GPUtimer;
 
+static Demo* demo = NULL;
 static Demoui* demoui = NULL;
 static int graphIndex;
 static PerfGraph* perfGraphs;  //[fps, cpu, gpu]
@@ -211,8 +213,10 @@ static int stopGPUTimer(GPUtimer* timer, float* times, int maxTimes)
 }
 
 
-Demoui* demouiInit()
+Demoui* demouiInit(Demo* dm)
 {
+	demo = dm;
+	
     demoui = (Demoui*)calloc(1, sizeof(Demoui));
     assert(demoui);
 

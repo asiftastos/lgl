@@ -1,11 +1,6 @@
 #include "lgl/demo.h"
 #include "lglui/demoui.h"
 
-#define CLITERAL(type)      (type)
-
-//colors
-#define BLANK    CLITERAL(Color){ 0, 0, 0, 0 }
-
 //keys
 #define KEY_LEFT_SHIFT GLFW_KEY_LEFT_SHIFT 
 #define KEY_RIGHT_SHIFT GLFW_KEY_RIGHT_SHIFT 
@@ -198,7 +193,7 @@ void init()
 {
     printf("Demorayui initialized\n");
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    dui = demouiInit();
+    dui = demouiInit(d);
 
     GuiSetStyle(DEFAULT, TEXT_SIZE, 18);
 }

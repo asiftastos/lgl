@@ -79,10 +79,12 @@ solution "LearningGL"
 		implibdir "build"
 
 		includedirs {
+			"src/lgl",
 			"src/lglui",
 			"libs/glad",
 			"libs/glfw",
-			"libs/stb", 
+			"libs/stb",
+			"libs/cglm/include/cglm",
 			"libs/nanovg"
 		}
 

@@ -3,6 +3,11 @@
 
 #include "nanovg.h"
 
+#define CLITERAL(type)      (type)
+
+//colors
+#define BLANK    CLITERAL(Color){ 0, 0, 0, 0 }
+
 typedef struct Demoui
 {
     NVGcontext* vg;
@@ -10,7 +15,7 @@ typedef struct Demoui
     bool showGraphs;
 }Demoui;
 
-Demoui* demouiInit();
+Demoui* demouiInit(Demo* dm);
 void demouiTerminate();
 void demouiToggleShowGraphs();
 void demouiToggleGraph();
